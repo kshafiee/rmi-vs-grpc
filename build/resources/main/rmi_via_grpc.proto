@@ -1,0 +1,103 @@
+/*
+ *  Created by Quinton Hoole
+ *  2018-02-12
+ *  Illustration of how to perform Java Remote Method Invocation over gRPC
+ */
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "sapphire.grpc.example.generated";
+option java_outer_classname = "InvokerProto";
+option objc_class_prefix = "HLW";
+
+package invoker;
+
+// The greeting service definition.
+service Invoker {
+  // Sends a greeting
+  rpc Invoke (InvokeRequest) returns (InvokeResponse) {}
+}
+
+/**
+ *  I generated these by hand, but we will write a compiler to generate these (e.g. based on either parsing or reflection),
+ *  in this example, from source files in sapphire/grpc/example
+ **/
+/**
+ * Example base class, like java class Object
+ */
+message Base {
+  Base super = 1; // Equivalent to java 'super'.  Refers to parent in inheritance hierarchy.  Null in this case.
+  string name = 2; // Direct mapping frou java source.
+  string value = 3;
+  oneof Derived { // One for each possible direct subclass.  Note that only one of these fields will be present in the message.
+                  SubClass1 subclass1 = 4;
+                  SubClass2 subclass2 = 5;
+  };
+};
+
+message SubClass1 {
+  Base super = 1; // Equivalent to java 'super'.  Refers to parent in inheritance hierarchy.
+  float amount = 2; // Example primitive field. Direct mapping frou java source.
+  //repeated int64 ages = 3; // Example of an array. Direct mapping frou java source.
+  repeated bytes ages = 3; // Example of an array. Direct mapping frou java source.
+  oneof SubClasses { // One for each direct subclass.  Note that only one of these fields will be present in the message.
+                  SubSubClass11 subsubclass11 = 4;
+                  SubSubClass12 subsubclass12 = 5;
+  }
+}
+
+message SubClass2 {
+  Base super = 1; // Equivalent to java 'super'.  Refers to parent in inheritance hierarchy.
+  double value = 2; // Note: masks parent class's field.
+  int32 Shortval = 3;
+  oneof SubClasses { // One for each direct subclass.  Note that only one of these fields will be present in the message.
+                  SubSubClass21 subsubclass21 = 4;
+                  SubSubClass22 subsubclass22 = 5;
+  }
+}
+
+message SubSubClass11 {
+  SubClass1 super = 1;
+  enum Corpus {
+    UNIVERSAL = 0;
+    WEB = 1;
+    IMAGES = 2;
+    LOCAL = 3;
+    NEWS = 4;
+    PRODUCTS = 5;
+    VIDEO = 6;
+  }
+  Corpus corpus = 2;
+  bool isThisDumb = 3;
+}
+
+message SubSubClass12 {
+  SubClass1 super = 1;
+  int32 foo = 2;
+}
+
+message SubSubClass21 {
+  SubClass2 super = 1;
+  int32 bar = 2; // Example primitive type;
+  SubSubClass11 sub11 = 3; // Example direct reference to an instance of a non-base class.
+  SubClass1 sub1 = 4; // Example reference via a parent type.
+}
+
+message SubSubClass22 {
+  SubClass2 super = 1;
+  int32 baz = 2;
+  Base anyType = 3; // Example via the ultimate ancester type, similar to reference to Object.
+}
+// The request message containing the user's name.
+message InvokeRequest {
+  string methodName = 1;
+  repeated Base arg = 2; // Some number of arguments, each of some subtype of Base (i.e. Object).
+}
+
+// The response message containing the greetings
+message InvokeResponse {
+  oneof ReturnOrThrow {
+    Base returnValue = 1; // One return value (if the method throws an exception, the return value is omitted.
+    Base threw = 2; // What exception the method thew.  If the method returned successfully, the exception is omitted.
+  }
+};
