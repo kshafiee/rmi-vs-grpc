@@ -3,6 +3,11 @@ package sapphire.grpc.example;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectOutput;
+import org.nustaq.serialization.simpleapi.DefaultCoder;
+import org.nustaq.serialization.util.FSTUtil;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,17 +26,26 @@ public class SubClass1 extends BaseClass implements ProtoBuilder {
     private static final Logger logger = Logger.getLogger(SubClass1.class.getName());
     public float amount; // Example primitive type
     public List<Long> ages; // Example standard lib type with generics
+    private static FSTConfiguration fst;
+
+    public static FSTConfiguration getFST() {
+        if (fst != null) {
+            return fst;
+        }
+        FSTConfiguration tmp = FSTConfiguration.createDefaultConfiguration();
+        tmp.registerClass(Long.class);
+        fst = tmp;
+        return fst;
+    }
 
     public static byte[] serialize(Object obj) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream os = new ObjectOutputStream(out);
-        os.writeObject(obj);
-        return out.toByteArray();
+        FSTConfiguration fst = getFST();
+        return fst.asByteArray(obj);
     }
+
     public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream in = new ByteArrayInputStream(data);
-        ObjectInputStream is = new ObjectInputStream(in);
-        return is.readObject();
+        FSTConfiguration fst = getFST();
+        return fst.asObject(data);
     }
 
     @Override

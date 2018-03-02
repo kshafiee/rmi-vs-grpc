@@ -45,6 +45,7 @@ dependencies {
   compile "io.grpc:grpc-protobuf:${grpcVersion}"
   compile "io.grpc:grpc-stub:${grpcVersion}"
   compile "org.reflections:reflections:0.9.11"
+  compile 'de.ruedigermoeller:fst:2.48-jdk-6'
 
   testCompile "io.grpc:grpc-testing:${grpcVersion}"
   testCompile "junit:junit:4.12"
